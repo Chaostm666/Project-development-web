@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système de Gestion de Stock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="login.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<body>
+    <!-- Login Screen -->
+    <div id="auth-screen" class="auth-screen">
+        <div class="auth-container">
+            <div class="wrapper">
+                <form id="login-form" action="#">
+                    <img src="&.png" alt="Logo" class="login-logo">
+                    <div class="input-field">
+                        <input type="text" id="username" required placeholder="">
+                        <label>Enter your email</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="password" id="password" required placeholder="">
+                        <label>Enter your password</label>
+                    </div>
+                    <div class="forget">
+                        <label for="remember">
+                            <input type="checkbox" id="remember">
+                            <p>Remember me</p>
+                        </label>
+                        <a href="#">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="auth-btn">Log In</button>
+                    <div id="login-error" class="auth-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Identifiants incorrects</span>
+                    </div>
+                    <div class="register">
+                        <p>Don't have an account? <a href="#">Register</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container (Hidden by default) -->
+    <div id="main-app-container" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="&.png" alt="DelivEX Logo">
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item active" data-target="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Tableau de bord</span>
+                </div>
+                <!-- ... Rest of sidebar ... -->
+                <div class="nav-item" data-target="products">
+                    <i class="fas fa-box"></i>
+                    <span>Produits</span>
+                </div>
+                <div class="nav-item" data-target="suppliers">
+                    <i class="fas fa-truck"></i>
+                    <span>Fournisseurs</span>
+                </div>
+                <div class="nav-item" data-target="clients">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </div>
+                <div class="nav-item" data-target="orders">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Commandes</span>
+                </div>
+                <div class="nav-item" data-target="categories">
+                    <i class="fas fa-tags"></i>
+                    <span>Catégories</span>
+                </div>
+                <div class="nav-item" data-target="warehouses">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Entrepôts</span>
+                </div>
+                <div class="nav-divider"></div>
+                <div class="nav-item logout-nav" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Déconnexion</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <div class="header-left">
+                    <button id="sidebar-toggle" class="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1>Tableau de Bord</h1>
+                        <p>Gestion de stock et inventaire</p>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Administrateur</span>
+                </div>
+            </header>
+
+            <!-- Sections de contenu chargées dynamiquement -->
+            <div id="content-sections"></div>
+
+            <footer>
+                <p>Système de Gestion de Stock &copy; 2023 | Développé avec HTML, CSS et JavaScript</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modals-container"></div>
+
+    <!-- Scripts -->
+    <script src="data.js"></script>
+    <script src="utils.js"></script>
+    <script src="auth.js"></script>
+    <script src="ui.js"></script>
+    <script src="forms.js"></script>
+    <script src="navigation.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
