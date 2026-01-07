@@ -144,6 +144,9 @@ const UI = {
         // Configurer les événements globaux
         UI.setupGlobalEvents();
 
+        // Initialiser les événements communs (une seule fois)
+        UI.initCommonEvents();
+
         // Gestion du toggle sidebar pour mobile
         UI.setupSidebarToggle();
     },
@@ -389,7 +392,7 @@ const UI = {
                     <td>${product.minStock}</td>
                     <td><span class="badge ${badgeClass}">${status}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-primary" data-id="${product.id}" data-action="restock-product">
+                        <button class="btn btn-sm btn-primary restock-product-btn" data-id="${product.id}">
                             <i class="fas fa-boxes"></i> Réapprovisionner
                         </button>
                     </td>
@@ -457,16 +460,27 @@ const UI = {
             case 'orders':
                 UI.initOrdersSection();
                 break;
+            case 'categories':
+                UI.initCategoriesSection();
+                break;
+            case 'warehouses':
+                UI.initWarehousesSection();
+                break;
         }
-
-        // Initialiser les événements communs
-        UI.initCommonEvents();
     },
 
     // Initialiser le dashboard
     initDashboard: () => {
         // Initialiser les graphiques
         UI.initCharts();
+
+        // Événements des boutons de réapprovisionnement dans le tableau
+        document.querySelectorAll('.restock-product-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.currentTarget.dataset.id);
+                UI.handleRestockProduct(id);
+            });
+        });
 
         // Événements des boutons d'action rapide
         document.querySelectorAll('.quick-action-btn').forEach(btn => {
@@ -489,9 +503,14 @@ const UI = {
             });
         });
 
-        // Bouton de réapprovisionnement
+        // Bouton de réapprovisionnement (Global)
         document.getElementById('restock-btn')?.addEventListener('click', () => {
-            Utils.showNotification('Fonctionnalité de réapprovisionnement en développement', 'info');
+            const lowStockCount = DataManager.getAll('products').filter(p => p.quantity <= p.minStock).length;
+            if (lowStockCount > 0) {
+                Utils.showNotification(`Il y a ${lowStockCount} produits en stock faible.`, 'warning');
+            } else {
+                Utils.showNotification('Tout le stock est au-dessus du seuil minimum.', 'success');
+            }
         });
     },
 
@@ -907,6 +926,77 @@ const UI = {
 
         tbody.innerHTML = orders.map(order => UI.templates.tableRow(order, 'orders')).join('') ||
             '<tr><td colspan="7" class="text-center">Aucune commande trouvée</td></tr>';
+    },
+
+    // Initialiser la section catégories
+    initCategoriesSection: () => {
+        // Bouton d'ajout de catégorie
+        document.getElementById('add-category-btn')?.addEventListener('click', () => {
+            Forms.openCategoryForm();
+        });
+    },
+
+    // Initialiser la section entrepôts
+    initWarehousesSection: () => {
+        // Bouton d'ajout d'entrepôt
+        document.getElementById('add-warehouse-btn')?.addEventListener('click', () => {
+            Forms.openWarehouseForm();
+        });
+    },
+
+    // Mettre à jour le tableau des catégories
+    updateCategoriesTable: (categories) => {
+        const tbody = document.querySelector('#categories tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = categories.map(category => `
+            <tr>
+                <td>${category.id}</td>
+                <td>${category.name}</td>
+                <td>${category.description || '—'}</td>
+                <td>${category.productCount || 0}</td>
+                <td class="action-buttons">
+                    <button class="action-btn edit-btn" data-id="${category.id}" data-type="category">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete-btn" data-id="${category.id}" data-type="category">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('') || '<tr><td colspan="5" class="text-center">Aucune catégorie trouvée</td></tr>';
+    },
+
+    // Mettre à jour le tableau des entrepôts
+    updateWarehousesTable: (warehouses) => {
+        const tbody = document.querySelector('#warehouses tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = warehouses.map(warehouse => {
+            const usagePercentage = warehouse.capacity > 0 ? ((warehouse.currentStock / warehouse.capacity) * 100).toFixed(1) : 0;
+            return `
+                <tr>
+                    <td>${warehouse.id}</td>
+                    <td>${warehouse.name}</td>
+                    <td>${warehouse.address || '—'}</td>
+                    <td>${warehouse.capacity}</td>
+                    <td>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: ${usagePercentage}%"></div>
+                            <span>${warehouse.currentStock} (${usagePercentage}%)</span>
+                        </div>
+                    </td>
+                    <td class="action-buttons">
+                        <button class="action-btn edit-btn" data-id="${warehouse.id}" data-type="warehouse">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${warehouse.id}" data-type="warehouse">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('') || '<tr><td colspan="6" class="text-center">Aucun entrepôt trouvé</td></tr>';
     },
 
     // Initialiser les événements communs

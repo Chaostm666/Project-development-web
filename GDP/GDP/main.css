@@ -528,6 +528,7 @@ tr:hover td {
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
+
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
@@ -598,8 +599,15 @@ tr:hover td {
     box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
+/* Explicit styling for select options to fix visibility issues */
+select.form-control option {
+    background-color: #1e293b; /* Deep blue-gray for visibility */
+    color: #f8fafc; /* Off-white text */
+    padding: 10px;
+}
+
 .form-control::placeholder {
-    color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.4); /* Increased visibility for placeholder */
 }
 
 .form-row {

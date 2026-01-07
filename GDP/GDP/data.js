@@ -144,7 +144,7 @@ const DataManager = {
         appData[dataType].push(item);
         return item;
     },
-    
+        
     // Mettre à jour un élément
     update: (dataType, id, updates) => {
         const index = appData[dataType].findIndex(item => item.id === id);

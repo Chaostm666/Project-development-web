@@ -9,7 +9,7 @@ const Utils = {
             day: 'numeric'
         });
     },
-    
+
     // Formater un montant
     formatCurrency: (amount, currency = 'EUR', locale = 'fr-FR') => {
         return new Intl.NumberFormat(locale, {
@@ -17,30 +17,30 @@ const Utils = {
             currency: currency
         }).format(amount);
     },
-    
+
     // Générer un identifiant unique
     generateId: (prefix = '') => {
         return prefix + Date.now().toString(36) + Math.random().toString(36).substr(2);
     },
-    
+
     // Valider un email
     validateEmail: (email) => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     },
-    
+
     // Valider un numéro de téléphone
     validatePhone: (phone) => {
         const re = /^[\+]?[0-9\s\-\(\)]{10,}$/;
         return re.test(phone);
     },
-    
+
     // Limiter la longueur du texte
     truncateText: (text, maxLength = 50) => {
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
     },
-    
+
     // Afficher une notification
     showNotification: (message, type = 'info', duration = 3000) => {
         // Créer l'élément de notification
@@ -53,10 +53,10 @@ const Utils = {
             </div>
             <button class="notification-close">&times;</button>
         `;
-        
+
         // Ajouter au DOM
         document.body.appendChild(notification);
-        
+
         // Style de la notification
         Object.assign(notification.style, {
             position: 'fixed',
@@ -64,15 +64,15 @@ const Utils = {
             right: '20px',
             padding: '15px 20px',
             borderRadius: '5px',
-            backgroundColor: type === 'success' ? '#d4edda' : 
-                           type === 'error' ? '#f8d7da' : 
-                           type === 'warning' ? '#fff3cd' : '#d1ecf1',
-            color: type === 'success' ? '#155724' : 
-                   type === 'error' ? '#721c24' : 
-                   type === 'warning' ? '#856404' : '#0c5460',
-            border: `1px solid ${type === 'success' ? '#c3e6cb' : 
-                               type === 'error' ? '#f5c6cb' : 
-                               type === 'warning' ? '#ffeaa7' : '#bee5eb'}`,
+            backgroundColor: type === 'success' ? '#d4edda' :
+                type === 'error' ? '#f8d7da' :
+                    type === 'warning' ? '#fff3cd' : '#d1ecf1',
+            color: type === 'success' ? '#155724' :
+                type === 'error' ? '#721c24' :
+                    type === 'warning' ? '#856404' : '#0c5460',
+            border: `1px solid ${type === 'success' ? '#c3e6cb' :
+                type === 'error' ? '#f5c6cb' :
+                    type === 'warning' ? '#ffeaa7' : '#bee5eb'}`,
             zIndex: '9999',
             minWidth: '300px',
             display: 'flex',
@@ -81,7 +81,7 @@ const Utils = {
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
             animation: 'slideIn 0.3s ease-out'
         });
-        
+
         // Animation
         const styleSheet = document.createElement('style');
         styleSheet.textContent = `
@@ -95,7 +95,7 @@ const Utils = {
             }
         `;
         document.head.appendChild(styleSheet);
-        
+
         // Fermer la notification
         const closeBtn = notification.querySelector('.notification-close');
         const closeNotification = () => {
@@ -106,19 +106,29 @@ const Utils = {
                 }
             }, 300);
         };
-        
+
         closeBtn.addEventListener('click', closeNotification);
-        
+
         // Fermer automatiquement après la durée spécifiée
         setTimeout(closeNotification, duration);
     },
-    
+
     // Confirmer une action
     confirmAction: (message) => {
         return new Promise((resolve) => {
+            // Utiliser le conteneur de modales existant
+            const modalsContainer = document.getElementById('modals-container');
+            if (!modalsContainer) {
+                // Fallback si le conteneur n'existe pas
+                const confirmed = confirm(message);
+                resolve(confirmed);
+                return;
+            }
+
             // Créer la modale de confirmation
             const modal = document.createElement('div');
             modal.className = 'modal active';
+            modal.id = 'confirm-modal';
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 400px;">
                     <div class="modal-header">
@@ -134,45 +144,32 @@ const Utils = {
                     </div>
                 </div>
             `;
-            
-            document.body.appendChild(modal);
-            
+
+            modalsContainer.appendChild(modal);
+
             // Gérer les événements
-            const closeModal = () => {
-                document.body.removeChild(modal);
+            const cleanup = (result) => {
+                modal.remove();
+                resolve(result);
             };
-            
-            modal.querySelector('.close-btn').addEventListener('click', () => {
-                resolve(false);
-                closeModal();
-            });
-            
-            modal.querySelector('#cancel-btn').addEventListener('click', () => {
-                resolve(false);
-                closeModal();
-            });
-            
-            modal.querySelector('#confirm-btn').addEventListener('click', () => {
-                resolve(true);
-                closeModal();
-            });
-            
+
+            modal.querySelector('.close-btn').addEventListener('click', () => cleanup(false));
+            modal.querySelector('#cancel-btn').addEventListener('click', () => cleanup(false));
+            modal.querySelector('#confirm-btn').addEventListener('click', () => cleanup(true));
+
             // Fermer en cliquant à l'extérieur
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    resolve(false);
-                    closeModal();
-                }
+                if (e.target === modal) cleanup(false);
             });
         });
     },
-    
+
     // Télécharger des données au format JSON
     exportToJSON: (data, filename = 'export.json') => {
         const jsonString = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
@@ -181,12 +178,12 @@ const Utils = {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     },
-    
+
     // Importer des données depuis un fichier JSON
     importFromJSON: (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            
+
             reader.onload = (event) => {
                 try {
                     const data = JSON.parse(event.target.result);
@@ -195,11 +192,11 @@ const Utils = {
                     reject(new Error('Fichier JSON invalide'));
                 }
             };
-            
+
             reader.onerror = () => {
                 reject(new Error('Erreur de lecture du fichier'));
             };
-            
+
             reader.readAsText(file);
         });
     }

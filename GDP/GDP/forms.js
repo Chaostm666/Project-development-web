@@ -451,7 +451,12 @@ const Forms = {
             case 'order':
                 Forms.openOrderForm(id);
                 break;
-            // Ajouter d'autres types si nécessaire
+            case 'category':
+                Forms.openCategoryForm(id);
+                break;
+            case 'warehouse':
+                Forms.openWarehouseForm(id);
+                break;
         }
     },
 
@@ -908,6 +913,173 @@ const Forms = {
                 ${product.name} (${Utils.formatCurrency(product.price)})
             </option>
         `).join('');
+    },
+
+    // Ouvrir le formulaire de catégorie
+    openCategoryForm: (categoryId = null) => {
+        const isEdit = categoryId !== null;
+        const category = isEdit ? DataManager.getById('categories', categoryId) : null;
+
+        const modalContent = `
+            <div class="modal active" id="category-form-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${isEdit ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h3>
+                        <button class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="category-form">
+                            <div class="form-group">
+                                <label for="category-name">Nom de la catégorie *</label>
+                                <input type="text" id="category-name" class="form-control" required 
+                                       value="${category?.name || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label for="category-description">Description</label>
+                                <textarea id="category-description" class="form-control" rows="3">${category?.description || ''}</textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" id="cancel-category-btn">Annuler</button>
+                                <button type="submit" class="btn btn-primary">
+                                    ${isEdit ? 'Mettre à jour' : 'Créer la catégorie'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        Forms.openModal(modalContent, 'category-form-modal');
+
+        const form = document.getElementById('category-form');
+        form.addEventListener('submit', (e) => Forms.handleCategorySubmit(e, categoryId));
+
+        document.getElementById('cancel-category-btn')?.addEventListener('click', () => {
+            Forms.closeModal('category-form-modal');
+        });
+    },
+
+    // Gérer la soumission du formulaire catégorie
+    handleCategorySubmit: async (e, categoryId) => {
+        e.preventDefault();
+        const isEdit = categoryId !== null;
+        const name = document.getElementById('category-name').value.trim();
+        const description = document.getElementById('category-description').value.trim();
+
+        if (!name) {
+            Utils.showNotification('Le nom de la catégorie est obligatoire', 'error');
+            return;
+        }
+
+        const categoryData = { name, description };
+
+        try {
+            if (isEdit) {
+                DataManager.update('categories', categoryId, categoryData);
+                Utils.showNotification('Catégorie mise à jour', 'success');
+            } else {
+                categoryData.productCount = 0;
+                DataManager.add('categories', categoryData);
+                Utils.showNotification('Catégorie créée', 'success');
+            }
+            App.saveData();
+            Forms.closeModal('category-form-modal');
+            UI.loadSection('categories');
+        } catch (error) {
+            Utils.showNotification('Erreur lors de l\'enregistrement', 'error');
+        }
+    },
+
+    // Ouvrir le formulaire d'entrepôt
+    openWarehouseForm: (warehouseId = null) => {
+        const isEdit = warehouseId !== null;
+        const warehouse = isEdit ? DataManager.getById('warehouses', warehouseId) : null;
+
+        const modalContent = `
+            <div class="modal active" id="warehouse-form-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${isEdit ? 'Modifier l\'entrepôt' : 'Nouvel entrepôt'}</h3>
+                        <button class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="warehouse-form">
+                            <div class="form-group">
+                                <label for="warehouse-name">Nom de l'entrepôt *</label>
+                                <input type="text" id="warehouse-name" class="form-control" required 
+                                       value="${warehouse?.name || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label for="warehouse-address">Adresse</label>
+                                <input type="text" id="warehouse-address" class="form-control" 
+                                       value="${warehouse?.address || ''}">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="warehouse-capacity">Capacité totale *</label>
+                                    <input type="number" id="warehouse-capacity" class="form-control" required 
+                                           min="1" value="${warehouse?.capacity || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="warehouse-manager">Gestionnaire</label>
+                                    <input type="text" id="warehouse-manager" class="form-control" 
+                                           value="${warehouse?.manager || ''}">
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" id="cancel-warehouse-btn">Annuler</button>
+                                <button type="submit" class="btn btn-primary">
+                                    ${isEdit ? 'Mettre à jour' : 'Créer l\'entrepôt'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        Forms.openModal(modalContent, 'warehouse-form-modal');
+
+        const form = document.getElementById('warehouse-form');
+        form.addEventListener('submit', (e) => Forms.handleWarehouseSubmit(e, warehouseId));
+
+        document.getElementById('cancel-warehouse-btn')?.addEventListener('click', () => {
+            Forms.closeModal('warehouse-form-modal');
+        });
+    },
+
+    // Gérer la soumission du formulaire entrepôt
+    handleWarehouseSubmit: async (e, warehouseId) => {
+        e.preventDefault();
+        const isEdit = warehouseId !== null;
+        const name = document.getElementById('warehouse-name').value.trim();
+        const address = document.getElementById('warehouse-address').value.trim();
+        const capacity = parseInt(document.getElementById('warehouse-capacity').value);
+        const manager = document.getElementById('warehouse-manager').value.trim();
+
+        if (!name || isNaN(capacity)) {
+            Utils.showNotification('Veuillez remplir les champs obligatoires', 'error');
+            return;
+        }
+
+        const warehouseData = { name, address, capacity, manager };
+
+        try {
+            if (isEdit) {
+                DataManager.update('warehouses', warehouseId, warehouseData);
+                Utils.showNotification('Entrepôt mis à jour', 'success');
+            } else {
+                warehouseData.currentStock = 0;
+                DataManager.add('warehouses', warehouseData);
+                Utils.showNotification('Entrepôt créé', 'success');
+            }
+            App.saveData();
+            Forms.closeModal('warehouse-form-modal');
+            UI.loadSection('warehouses');
+        } catch (error) {
+            Utils.showNotification('Erreur lors de l\'enregistrement', 'error');
+        }
     },
 
     // Ouvrir une modale
